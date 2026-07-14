@@ -15,8 +15,6 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
     error ZeroAmount();
     error InvalidCliffDuration();
     error BeneficiaryAlreadyAllocated();
-    error BeneficiaryNotFound();
-    error CliffNotReached();
     error NothingToClaim();
     error InsufficientTokenBalance();
     error InsufficientContractBalance();
@@ -24,9 +22,28 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
     event BeneficiaryAllocated(address indexed beneficiary, uint256 amount);
     event TokensClaimed(address indexed beneficiary, uint256 amount);
     event UnallocatedTokensWithdrawn(address indexed to, uint256 amount);
-    event VestingConfigured(uint256 vestingStart, uint256 cliffDuration, uint256 vestingDuration);
+    event VestingScheduleConfigured(uint256 vestingStart, uint256 cliffDuration, uint256 vestingDuration);
 
+    // @notice Token address given to the constructor with the alloted amount
     IERC20 public immutable token;
+
+    uint256 public immutable vestingStart;
+    uint256 public immutable cliffDuration;
+    uint256 public immutable vestingDuration;
+
+    uint256 public totalAllocated;
+    uint256 public totalClaimed;
+
+    // @notice Stores vesting information for a beneficiary.
+    struct Beneficiary {
+        uint256 allocation;
+        uint256 claimed;
+    }
+
+
+    // mapping(address => Beneficiary) public beneficiaries;
+    mapping(address beneficiary => Beneficiary vesting) public beneficiaries;
+
 
     constructor(
         address initialOwner,
@@ -36,32 +53,20 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
         uint256 vestingDuration_
     ) Ownable(initialOwner) {
         if (address(token_) == address(0)) revert ZeroAddress();
+
         if (vestingStart_ == 0) revert ZeroAmount();
+
         if (cliffDuration_ > vestingDuration_) revert InvalidCliffDuration();
+
         if (vestingDuration_ == 0) revert ZeroAmount();
+
         token = token_;
-
         vestingStart = vestingStart_;
-
         cliffDuration = cliffDuration_;
-
         vestingDuration = vestingDuration_;
 
-        emit VestingConfigured(vestingStart_, cliffDuration_, vestingDuration_);
+        emit VestingScheduleConfigured(vestingStart_, cliffDuration_, vestingDuration_);
     }
-    uint256 public immutable vestingStart;
-    uint256 public immutable cliffDuration;
-    uint256 public immutable vestingDuration;
-
-    uint256 public totalAllocated;
-    uint256 public totalClaimed;
-
-    struct Beneficiary {
-        uint256 allocation;
-        uint256 claimed;
-    }
-    // mapping(address => Beneficiary) public beneficiaries;
-    mapping(address beneficiary => Beneficiary vesting) public beneficiaries;
 
     function allocateBeneficiary(address beneficiary, uint256 amount) public onlyOwner {
         if (beneficiary == address(0)) revert ZeroAddress();
@@ -99,8 +104,12 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
         if (user.allocation == 0) {
             return 0;
         }
+        uint256 vested = vestedAmount(beneficiary);
+        if (vested <= user.claimed){
+            return 0;
+        }
 
-        return vestedAmount(beneficiary) - user.claimed;
+        return vested - user.claimed;
     }
 
     function remainingAmount(address beneficiary) public view returns (uint256) {
@@ -113,6 +122,7 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
         return user.allocation - user.claimed;
     }
 
+    //@dev Uses Checks-Effects-Interactions pattern
     function claim() external nonReentrant whenNotPaused {
         uint256 amount = claimableAmount(msg.sender);
 
@@ -120,9 +130,9 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
             revert NothingToClaim();
         }
 
-        Beneficiary storage user = beneficiaries[msg.sender];
+        Beneficiary storage beneficiary = beneficiaries[msg.sender];
 
-        user.claimed += amount;
+        beneficiary.claimed += amount;
         totalClaimed += amount;
 
         token.safeTransfer(msg.sender, amount);
@@ -130,7 +140,7 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
         emit TokensClaimed(msg.sender, amount);
     }
 
-    function withdrawUnallocated(address to, uint256 amount) external onlyOwner {
+    function withdrawUnallocated(address to, uint256 amount) external onlyOwner whenNotPaused {
         if (to == address(0)) {
             revert ZeroAddress();
         }
