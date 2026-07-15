@@ -121,7 +121,19 @@ function claimableAmount(address beneficiary)
 
     return vestedAmount(beneficiary) - user.claimed;
 }
-// remainingAmount()
+function remainingAmount(address beneficiary)
+    public
+    view
+    returns (uint256)
+{
+    Beneficiary memory user = beneficiaries[beneficiary];
+
+    if (user.allocation == 0) {
+        return 0;
+    }
+
+    return user.allocation - user.claimed;
+}
 // claim()
 // withdrawUnallocated()
 // pause()
