@@ -134,7 +134,53 @@ function remainingAmount(address beneficiary)
 
     return user.allocation - user.claimed;
 }
-// claim()
+function claimableAmount(address beneficiary)
+    public
+    view
+    returns (uint256)
+{
+    Beneficiary memory user = beneficiaries[beneficiary];
+
+    if (user.allocation == 0) {
+        return 0;
+    }
+
+    return vestedAmount(beneficiary) - user.claimed;
+}
+function remainingAmount(address beneficiary)
+    public
+    view
+    returns (uint256)
+{
+    Beneficiary memory user = beneficiaries[beneficiary];
+
+    if (user.allocation == 0) {
+        return 0;
+    }
+
+    return user.allocation - user.claimed;
+}
+
+function claim()
+    external
+    nonReentrant
+    whenNotPaused
+{
+    uint256 amount = claimableAmount(msg.sender);
+
+    if (amount == 0) {
+        revert NothingToClaim();
+    }
+
+    Beneficiary storage user = beneficiaries[msg.sender];
+
+    user.claimed += amount;
+    totalClaimed += amount;
+
+    token.safeTransfer(msg.sender, amount);
+
+    emit TokensClaimed(msg.sender, amount);
+}
 // withdrawUnallocated()
 // pause()
 // unpause()
