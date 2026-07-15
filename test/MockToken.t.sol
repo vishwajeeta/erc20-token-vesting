@@ -13,6 +13,6 @@ contract MockTokenTest is Test {
     }
 
     function test_balanceOf() public {
-    assertEq(mockToken.balanceOf(msg.sender), 10000000);
-}
+        assertEq(mockToken.balanceOf(msg.sender), 10000000);
+    }
 }
