@@ -9,7 +9,7 @@ contract MockTokenTest is Test {
 
     function setUp() public {
         mockToken = new MyToken(msg.sender);
-        mockToken.mint(msg.sender,10000000);
+        mockToken.mint(msg.sender, 10000000);
     }
 
     function test_balanceof() public {
