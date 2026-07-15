@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.13;
+pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
 import {MyToken} from "../src/MockToken.sol";
@@ -12,7 +12,7 @@ contract MockTokenTest is Test {
         mockToken.mint(msg.sender, 10000000);
     }
 
-    function test_balanceof() public {
-        mockToken.balanceOf(msg.sender);
-    }
+    function test_balanceOf() public {
+    assertEq(mockToken.balanceOf(msg.sender), 10000000);
+}
 }

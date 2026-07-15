@@ -113,26 +113,6 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
         return user.allocation - user.claimed;
     }
 
-    function claimableAmount(address beneficiary) public view returns (uint256) {
-        Beneficiary memory user = beneficiaries[beneficiary];
-
-        if (user.allocation == 0) {
-            return 0;
-        }
-
-        return vestedAmount(beneficiary) - user.claimed;
-    }
-
-    function remainingAmount(address beneficiary) public view returns (uint256) {
-        Beneficiary memory user = beneficiaries[beneficiary];
-
-        if (user.allocation == 0) {
-            return 0;
-        }
-
-        return user.allocation - user.claimed;
-    }
-
     function claim() external nonReentrant whenNotPaused {
         uint256 amount = claimableAmount(msg.sender);
 
@@ -164,13 +144,19 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
         uint256 available = balance - reserved;
 
         if (amount > available) {
-            revert InsufficientUnallocatedTokens();
+            revert InsufficientTokenBalance();
         }
 
         token.safeTransfer(to, amount);
 
         emit UnallocatedTokensWithdrawn(to, amount);
     }
-    // pause()
-    // unpause()
+
+    function pause() external onlyOwner {
+        _pause();
+    }
+
+    function unpause() external onlyOwner {
+        _unpause();
+    }
 }
