@@ -88,25 +88,39 @@ mapping(address beneficiary => Beneficiary vesting) public beneficiaries;
 function vestedAmount(address beneficiary)
     public
     view
-    returns (uint256){
-        Beneficiary memory user = beneficiaries[beneficiary];
-        if (user.allocation == 0) {
-    return 0;
-}
-if (block.timestamp < vestingStart + cliffDuration) {
-    return 0;
-}
-if (block.timestamp >= vestingStart + vestingDuration) {
-    uint256 elapsed = block.timestamp - vestingStart;
+    returns (uint256)
+{
+    Beneficiary memory user = beneficiaries[beneficiary];
 
-return (user.allocation * elapsed) / vestingDuration;
-
-}
+    if (user.allocation == 0) {
+        return 0;
     }
 
+    if (block.timestamp < vestingStart + cliffDuration) {
+        return 0;
+    }
 
+    if (block.timestamp >= vestingStart + vestingDuration) {
+        return user.allocation;
+    }
 
-//     claimableAmount()
+    uint256 elapsed = block.timestamp - vestingStart;
+
+    return (user.allocation * elapsed) / vestingDuration;
+}
+function claimableAmount(address beneficiary)
+    public
+    view
+    returns (uint256)
+{
+    Beneficiary memory user = beneficiaries[beneficiary];
+
+    if (user.allocation == 0) {
+        return 0;
+    }
+
+    return vestedAmount(beneficiary) - user.claimed;
+}
 // remainingAmount()
 // claim()
 // withdrawUnallocated()
