@@ -35,6 +35,9 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
     uint256 public totalAllocated;
     uint256 public totalClaimed;
 
+    // mapping(address => Beneficiary) public beneficiaries;
+    mapping(address beneficiary => Beneficiary vesting) public beneficiaries;
+
     /// @notice Initializes the token vesting escrow contract.
     /// @param initialOwner Address that will own and administer the contract.
     /// @param token_ ERC-20 token used for vesting.
