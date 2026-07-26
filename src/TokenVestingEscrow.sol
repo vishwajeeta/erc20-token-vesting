@@ -27,14 +27,7 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
     // @notice Token address given to the constructor with the alloted amount
     IERC20 public immutable token;
 
-<<<<<<< HEAD
-    /// @notice Initializes the token vesting escrow contract.
-    /// @param initialOwner Address that will own and administer the contract.
-    /// @param token_ ERC-20 token used for vesting.
-    /// @param vestingStart_ Unix timestamp when vesting begins.
-    /// @param cliffDuration_ Duration (in seconds) before beneficiaries can claim.
-    /// @param vestingDuration_ Total vesting duration (in seconds).
-=======
+    
     uint256 public immutable vestingStart;
     uint256 public immutable cliffDuration;
     uint256 public immutable vestingDuration;
@@ -42,18 +35,12 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
     uint256 public totalAllocated;
     uint256 public totalClaimed;
 
-    // @notice Stores vesting information for a beneficiary.
-    struct Beneficiary {
-        uint256 allocation;
-        uint256 claimed;
-    }
-
-
-    // mapping(address => Beneficiary) public beneficiaries;
-    mapping(address beneficiary => Beneficiary vesting) public beneficiaries;
-
-
->>>>>>> 787f802689d68c41dcbf3ca52c880dc72523b146
+    /// @notice Initializes the token vesting escrow contract.
+    /// @param initialOwner Address that will own and administer the contract.
+    /// @param token_ ERC-20 token used for vesting.
+    /// @param vestingStart_ Unix timestamp when vesting begins.
+    /// @param cliffDuration_ Duration (in seconds) before beneficiaries can claim.
+    /// @param vestingDuration_ Total vesting duration (in seconds).
     constructor(
         address initialOwner,
         IERC20 token_,
