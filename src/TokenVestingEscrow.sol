@@ -28,6 +28,12 @@ contract TokenVestingEscrow is Ownable, Pausable, ReentrancyGuard {
 
     IERC20 public immutable token;
 
+/// @notice Initializes the token vesting escrow contract.
+/// @param initialOwner Address that will own and administer the contract.
+/// @param token_ ERC-20 token used for vesting.
+/// @param vestingStart_ Unix timestamp when vesting begins.
+/// @param cliffDuration_ Duration (in seconds) before beneficiaries can claim.
+/// @param vestingDuration_ Total vesting duration (in seconds).
     constructor(
         address initialOwner,
         IERC20 token_,
